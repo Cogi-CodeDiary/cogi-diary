@@ -68,6 +68,7 @@ class GitHubApiService(
      * @param owner 저장소 소유자의 GitHub 사용자명
      * @param repo 조회할 저장소 이름
      * @param sinceDate 이 날짜 이후의 커밋을 조회 (기본값: 7일 전)
+     * @param untilDate 이 날짜 이전의 커밋을 조회 (기본값: 현재 시각)
      * @return 해당 기간 내의 커밋 리스트
      */
 
@@ -75,10 +76,12 @@ class GitHubApiService(
         owner: String,
         repo: String,
         sinceDate: LocalDateTime = LocalDateTime.now().minusDays(7),
+        untilDate: LocalDateTime = LocalDateTime.now(),
     ): List<CommitItem> {
         val url = UriComponentsBuilder.fromUriString(gitHubProperties.baseUrl)
             .path("/repos/{owner}/{repo}/commits")
             .queryParam("since", sinceDate.toIsoString())
+            .queryParam("until", untilDate.toIsoString())
             .buildAndExpand(owner, repo)
             .toUri()
 
