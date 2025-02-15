@@ -2,6 +2,7 @@ package io.diary.cogi.githubapi
 
 import githubtest.dto.commit.CommitItem
 import githubtest.dto.repository.Repository
+import io.diary.cogi.utils.DateTimeUtils.toIsoString
 import org.apache.commons.logging.LogFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpEntity
@@ -45,7 +46,7 @@ class GitHubApiService(
         repo: String,
         sinceDate: LocalDateTime = LocalDateTime.now().minusDays(7),
     ): List<CommitItem> {
-        val parsedSinceDate = sinceDate.format(DateTimeFormatter.ISO_DATE_TIME)
+        val parsedSinceDate = sinceDate.toIsoString()
 
         val url = UriComponentsBuilder.fromUriString(gitHubProperties.baseUrl)
             .path("/repos/{owner}/{repo}/commits")
