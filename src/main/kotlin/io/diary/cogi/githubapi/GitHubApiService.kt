@@ -3,7 +3,6 @@ package io.diary.cogi.githubapi
 import githubtest.dto.commit.CommitItem
 import githubtest.dto.repository.Repository
 import io.diary.cogi.utils.DateTimeUtils.toIsoString
-import org.apache.commons.logging.LogFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -12,14 +11,25 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Service
 class GitHubApiService(
     private val restTemplate: RestTemplate,
     private val gitHubProperties: GitHubProperties,
 ) {
-    fun getAllRepositories(owner: String, page: Int = 1, perPage: Int = 100): List<Repository> {
+    fun getAllRepositories(owner: String): List<Repository> {
+        val repositories = mutableListOf<Repository>()
+        var page = 1
+        var response = getRepositories(owner, page)
+        while (response.isNotEmpty()) {
+            repositories.addAll(response)
+            page++
+            response = getRepositories(owner, page)
+        }
+        return repositories
+    }
+
+    fun getRepositories(owner: String, page: Int = 1, perPage: Int = 100): List<Repository> {
         val url = UriComponentsBuilder.fromUriString(gitHubProperties.baseUrl)
             .path("/users/{owner}/repos")
             .queryParam("page", page)
