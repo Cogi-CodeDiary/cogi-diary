@@ -6,12 +6,12 @@ import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
 
 @Component
-class GithubApiRunner(
+class GitHubApiRunner(
     private val githubProperties: GitHubProperties,
     private val gitHubApiService: GitHubApiService,
 ) : ApplicationRunner {
 
-    private val log = LogFactory.getLog(GithubApiRunner::class.java)
+    private val log = LogFactory.getLog(GitHubApiRunner::class.java)
 
     override fun run(args: ApplicationArguments?) {
         val repositories = gitHubApiService.getAllRepositories(githubProperties.username)
