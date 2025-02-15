@@ -18,15 +18,11 @@ class GitHubApiService(
     private val gitHubProperties: GitHubProperties,
 ) {
     fun getAllRepositories(owner: String): List<Repository> {
-        val repositories = mutableListOf<Repository>()
-        var page = 1
-        var response = getRepositories(owner, page)
-        while (response.isNotEmpty()) {
-            repositories.addAll(response)
-            page++
-            response = getRepositories(owner, page)
-        }
-        return repositories
+        return generateSequence(1) { it + 1 }
+            .map { page -> getRepositories(owner, page) }
+            .takeWhile { it.isNotEmpty() }
+            .flatten()
+            .toList()
     }
 
     fun getRepositories(owner: String, page: Int = 1, perPage: Int = 100): List<Repository> {
