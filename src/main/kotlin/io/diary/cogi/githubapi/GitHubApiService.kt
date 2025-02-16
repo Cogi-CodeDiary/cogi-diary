@@ -3,32 +3,36 @@ package io.diary.cogi.githubapi
 import githubtest.dto.commit.CommitItem
 import githubtest.dto.repository.Repository
 import io.diary.cogi.utils.DateTimeUtils.toIsoString
-import org.springframework.core.ParameterizedTypeReference
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestTemplate
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.LocalDateTime
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.reactor.awaitSingle
 
 @Service
 class GitHubApiService(
-    private val restTemplate: RestTemplate,
+    private val webClient: WebClient,
     private val gitHubProperties: GitHubProperties,
 ) {
     /**
      * 사용자의 모든 저장소 리스트를 조회하는 함수
      *
      * @param owner 저장소 소유자의 GitHub 사용자명
-     * @return 해당 사용자의 모든 저장소 리스트
+     * @return 해당 사용자의 모든 저장소 리스트를 포함하는 Flow
      */
-    fun getAllRepositories(owner: String): List<Repository> {
-        return generateSequence(1) { it + 1 }
-            .map { page -> getRepositories(owner, page) }
-            .takeWhile { it.isNotEmpty() }
-            .flatten()
-            .toList()
+    fun getAllRepositories(owner: String): Flow<List<Repository>> = flow {
+        var page = 1
+        var repositories: List<Repository>
+        do {
+            repositories = getRepositories(owner, page)
+            if (repositories.isNotEmpty()) {
+                emit(repositories)
+                page++
+            }
+        } while (repositories.isNotEmpty())
     }
 
     /**
@@ -40,7 +44,7 @@ class GitHubApiService(
      * @param perPage 한 페이지에 조회할 아이템 수 (기본값 100개, GitHub API 상 최대값 100개)
      * @return 해당 사용자의 저장소 리스트
      */
-    fun getRepositories(owner: String, page: Int = 1, perPage: Int = 100): List<Repository> {
+    suspend fun getRepositories(owner: String, page: Int = 1, perPage: Int = 100): List<Repository> {
         val url = UriComponentsBuilder.fromUriString(gitHubProperties.baseUrl)
             .path("/users/{owner}/repos")
             .queryParam("page", page)
@@ -48,18 +52,12 @@ class GitHubApiService(
             .buildAndExpand(owner)
             .toUri()
 
-        val headers = HttpHeaders()
-        headers.set("Authorization", "token ${gitHubProperties.token}")
-
-        val entity = HttpEntity<String>(headers)
-
-        val responseType = object : ParameterizedTypeReference<List<Repository>>() {}
-        return restTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            entity,
-            responseType
-        ).body ?: emptyList()
+        return webClient.get()
+            .uri(url)
+            .header("Authorization", "token ${gitHubProperties.token}")
+            .retrieve()
+            .bodyToMono<List<Repository>>()
+            .awaitSingle()
     }
 
     /**
@@ -71,8 +69,7 @@ class GitHubApiService(
      * @param untilDate 이 날짜 이전의 커밋을 조회 (기본값: 현재 시각)
      * @return 해당 기간 내의 커밋 리스트
      */
-
-    fun getCommits(
+    suspend fun getCommits(
         owner: String,
         repo: String,
         sinceDate: LocalDateTime = LocalDateTime.now().minusDays(7),
@@ -85,18 +82,11 @@ class GitHubApiService(
             .buildAndExpand(owner, repo)
             .toUri()
 
-        val headers = HttpHeaders()
-        headers.set("Authorization", "token ${gitHubProperties.token}")
-
-        val entity = HttpEntity<String>(headers)
-
-        val responseType = object : ParameterizedTypeReference<List<CommitItem>>() {}
-        return restTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            entity,
-            responseType
-        ).body ?: emptyList()
+        return webClient.get()
+            .uri(url)
+            .header("Authorization", "token ${gitHubProperties.token}")
+            .retrieve()
+            .bodyToMono<List<CommitItem>>()
+            .awaitSingle()
     }
-
 }
