@@ -10,6 +10,12 @@ class WebClientConfig {
     @Bean
     fun webClient(): WebClient {
         return WebClient.builder()
+            .codecs { clientCodecConfigure ->
+                // 버퍼 크기를 10MB로 증가
+                clientCodecConfigure
+                    .defaultCodecs()
+                    .maxInMemorySize(10 * 1024 * 1024)
+            }
             .build()
     }
 }
