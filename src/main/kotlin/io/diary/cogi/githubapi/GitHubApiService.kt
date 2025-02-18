@@ -3,13 +3,12 @@ package io.diary.cogi.githubapi
 import githubtest.dto.commit.CommitItem
 import githubtest.dto.repository.Repository
 import io.diary.cogi.utils.DateTimeUtils.toIsoString
+import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.LocalDateTime
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.reactor.awaitSingle
 
 @Service
@@ -23,17 +22,11 @@ class GitHubApiService(
      * @param owner 저장소 소유자의 GitHub 사용자명
      * @return 해당 사용자의 모든 저장소 리스트를 포함하는 Flow
      */
-    fun getAllRepositories(owner: String): Flow<List<Repository>> = flow {
-        var page = 1
-        var repositories: List<Repository>
-        do {
-            repositories = getRepositories(owner, page)
-            if (repositories.isNotEmpty()) {
-                emit(repositories)
-                page++
-            }
-        } while (repositories.isNotEmpty())
-    }
+    fun getAllRepositories(owner: String): Flow<List<Repository>> =
+        generateSequence(1) { it + 1 }
+            .asFlow()
+            .map { page -> getRepositories(owner, page) }
+            .takeWhile { repositories -> repositories.isNotEmpty() }
 
     /**
      * 사용자의 저장소 리스트를 조회하는 함수
