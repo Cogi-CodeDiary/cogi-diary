@@ -10,12 +10,17 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.LocalDateTime
 import kotlinx.coroutines.reactor.awaitSingle
+import org.apache.juli.logging.LogFactory
+import java.util.*
 
 @Service
 class GitHubApiService(
     private val webClient: WebClient,
     private val gitHubProperties: GitHubProperties,
 ) {
+
+    private val log = LogFactory.getLog(GitHubApiService::class.java)
+
     /**
      * 사용자의 모든 저장소 리스트를 조회하는 함수
      *
@@ -82,4 +87,31 @@ class GitHubApiService(
             .bodyToMono<List<CommitItem>>()
             .awaitSingle()
     }
+
+    fun addMarkdownFile(owner: String, repo: String, filePath: String, content: String, branch: String = "main") {
+        val encodedContent = Base64.getEncoder().encodeToString(content.toByteArray())
+
+        val requestBody = mapOf(
+            "message" to "Add new markdown file",
+            "content" to encodedContent,
+            "branch" to branch
+        )
+
+        log.info("파일 업로드 요청: $owner/$repo/$filePath")
+
+        val uri = UriComponentsBuilder.fromUriString(gitHubProperties.baseUrl)
+            .path("/repos/{owner}/{repo}/contents/{path}")
+            .buildAndExpand(owner, repo, filePath)
+
+        webClient.put()
+            .uri(uri.toUri())
+            .header("Authorization", "token ${gitHubProperties.token}")
+            .bodyValue(requestBody)
+            .retrieve()
+            .bodyToMono(String::class.java)
+            .doOnSuccess { log.info("파일 업로드 성공: $it") }
+            .doOnError { e -> log.info("파일 업로드 실패: ${e.message}") }
+            .subscribe()
+    }
+
 }
