@@ -9,4 +9,5 @@ class GitHubProperties(
     var username: String = "",
     var token: String = "",
     var baseUrl: String = "https://api.github.com",
+    var targetRepository: String = "",
 )
