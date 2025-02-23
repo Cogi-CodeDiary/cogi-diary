@@ -12,5 +12,6 @@ class CogiRunner(
     private val log = LogFactory.getLog(CogiRunner::class.java)
 
     override fun run(args: ApplicationArguments?) {
+        log.info("Hello, Cogi!")
     }
 }
