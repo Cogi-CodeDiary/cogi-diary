@@ -19,7 +19,6 @@ class CogiRunner(
     private val log = LogFactory.getLog(CogiRunner::class.java)
 
     override fun run(args: ApplicationArguments?) {
-
         //    fun addMarkdownFile(owner: String, repo: String, filePath: String, content: String, branch: String = "main") {
 
 //        gitHubApiService.addMarkdownFile(
