@@ -1,5 +1,6 @@
 package io.diary.cogi.generator
 
+import io.github.cdimascio.dotenv.Dotenv
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
@@ -8,8 +9,9 @@ import org.springframework.web.reactive.function.client.WebClient
 class GeneratorService(
     private val webClient: WebClient.Builder
 ) {
-    private val apiKey: String = System.getenv("API_KEY")
-        ?: throw IllegalStateException("API_KEY is missing!") // 환경변수에서 API 키 가져오기
+    private val dotenv = Dotenv.configure().ignoreIfMissing().load()
+    private val apiKey: String = dotenv["API_KEY"] ?: System.getenv("API_KEY")
+    ?: throw IllegalStateException("API_KEY is missing!")
 
     private val client: WebClient = webClient.baseUrl("https://generativelanguage.googleapis.com/v1beta").build()
 
