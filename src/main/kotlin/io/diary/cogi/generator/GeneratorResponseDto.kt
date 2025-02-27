@@ -1,14 +1,18 @@
 package io.diary.cogi.generator
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+
+@JsonIgnoreProperties(ignoreUnknown = true) // 불필요한 필드 무시
 data class GeneratorResponseDto(
-    val candidates: List<Candidate> = emptyList(),
+    val candidates: List<Candidate>? = emptyList(),
     val promptFeedback: PromptFeedback? = null
 ) {
     data class Candidate(
         val content: Content,
         val finishReason: String,
         val index: Int,
-        val safetyRatings: List<SafetyRating>
+        @JsonProperty("safetyRatings") val safetyRatings: List<SafetyRating>? = emptyList() // null 허용 & 기본값 설정
     )
 
     data class Content(
@@ -26,6 +30,6 @@ data class GeneratorResponseDto(
     )
 
     data class PromptFeedback(
-        val safetyRatings: List<SafetyRating>
+        val safetyRatings: List<SafetyRating>? = emptyList() // nullable 처리
     )
 }
