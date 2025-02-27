@@ -19,11 +19,16 @@ class CogiRunner(
 
         // 예제 커밋 메시지 리스트
         val commitMessages = listOf(
-            "Implemented user login functionality",
-            "Fixed a bug where the password reset link was not working",
-            "Refactored database connection handling",
-            "Updated UI design for better user experience"
+            "Fix: GeneratorResponseDto에서 safetyRatings 필드 null 처리 및 기본값 설정. 수정된 파일: GeneratorResponseDto.java",
+            "Feat: 예제 커밋 메시지 리스트로 제미나이 request 생성 후 generatorService 사용해서 호출 로직. 수정된 파일: CogiRunner.java",
+            "Fix: dotenv로 설정. 수정된 파일: GeneratorService.java",
+            "Chore: .env 파일 gitignore에 추가. 수정된 파일: .gitignore",
+            "Feat: GeneratorService 추가. 수정된 파일: GeneratorService.java",
+            "Feat: GeneratorResponseDto 추가. 수정된 파일: GeneratorResponseDto.java",
+            "Feat: GeneratorRequestDto 추가. 수정된 파일: GeneratorRequestDto.java",
+            "Feat: WebClient 설정 추가. 수정된 파일: WebClientConfig.java"
         )
+
 
         // 제미나이 request 생성
         val requestDto = GeneratorRequestDto(
