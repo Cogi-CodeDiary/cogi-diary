@@ -18,4 +18,7 @@ class WebClientConfig {
             }
             .build()
     }
+    @Bean
+
+    fun webClientBuilder(): WebClient.Builder = WebClient.builder()
 }
