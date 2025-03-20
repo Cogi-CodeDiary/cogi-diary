@@ -3,6 +3,8 @@ package io.diary.cogi.githubapi
 import githubtest.dto.commit.CommitItem
 import githubtest.dto.repository.Repository
 import io.diary.cogi.utils.DateTimeUtils.toIsoString
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
@@ -10,6 +12,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.LocalDateTime
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.runBlocking
 import org.apache.juli.logging.LogFactory
 import java.util.*
 
@@ -20,6 +23,38 @@ class GitHubApiService(
 ) {
 
     private val log = LogFactory.getLog(GitHubApiService::class.java)
+
+    /*
+     * 사용자의 모든 저장소 리스트를 조회하고,
+     * 각 저장소의 커밋 목록을 조회하는 함수
+     */
+    fun getAllRepositoriesWithCommits(): Map<Repository, List<CommitItem>> {
+        runBlocking {
+            val repositories = mutableListOf<Repository>()
+
+            getAllRepositories(gitHubProperties.username)
+                .collect { repoPage ->
+                    repositories.addAll(repoPage)
+                }
+
+            val repositoriesWithCommits = repositories
+                .map { repository ->
+                    async {
+                        val commits = getCommits(
+                            owner = gitHubProperties.username,
+                            repo = repository.name
+                        )
+                        repository to commits
+                    }
+                }
+                .awaitAll()
+                .toMap()
+
+            return@runBlocking repositoriesWithCommits
+        }
+
+        return emptyMap()
+    }
 
     /**
      * 사용자의 모든 저장소 리스트를 조회하는 함수
